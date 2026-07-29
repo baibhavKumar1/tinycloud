@@ -1,0 +1,13 @@
+{
+  "name": "langchain-agent",
+  "runtime": "node20",
+  "entry": "src/server.ts",
+  "env": [
+    "OPENAI_API_KEY",
+    "TINYCLOUD_API_KEY"
+  ],
+  "permissions": {
+    "default": "org_members"
+  },
+  "description": "Stateful LangChain/LangGraph agent server exposing web chat and remote MCP tools."
+}

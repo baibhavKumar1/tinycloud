@@ -1,0 +1,12 @@
+{
+  "name": "agent-langchain-template",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@langchain/core": "^0.1.50",
+    "express": "^4.19.2"
+  }
+}

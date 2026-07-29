@@ -1,0 +1,12 @@
+{
+  "name": "agent-claude-sdk-template",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "express": "^4.19.2"
+  }
+}

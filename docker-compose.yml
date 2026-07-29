@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: tinycloud
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  tinycloud-stack:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"  # Control Plane API
+      - "4001:4001"  # Remote MCP Server
+      - "4002:4002"  # Edge Auth Gateway
+      - "3000:3000"  # Web Catalog UI
+    environment:
+      - DATABASE_URL=postgres://postgres:postgrespassword@postgres:5432/tinycloud
+      - VERCEL_TOKEN=${VERCEL_TOKEN}
+      - VERCEL_TEAM_ID=${VERCEL_TEAM_ID}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCP_REGION=${GCP_REGION:-us-central1}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:

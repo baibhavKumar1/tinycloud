@@ -1,0 +1,26 @@
+{
+  "name": "@tinycloud/api",
+  "version": "0.1.0",
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@tinycloud/db": "workspace:*",
+    "@tinycloud/deploy-aws": "workspace:*",
+    "@tinycloud/deploy-gcp": "workspace:*",
+    "@tinycloud/deploy-vercel": "workspace:*",
+    "@tinycloud/shared": "workspace:*",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.7",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5"
+  }
+}
