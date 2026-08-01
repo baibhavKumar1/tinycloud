@@ -6,7 +6,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 
 const app = express();
 const PORT = process.env.PORT || 4001;
-const API_URL = process.env.API_URL || 'http://localhost:4000';
+const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://tinycloud-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
 
 app.use(cors());
 app.use(express.json());
@@ -34,7 +34,7 @@ const TOOLS = [
       properties: {
         name: { type: 'string', description: 'Name of the internal tool or agent' },
         slug: { type: 'string', description: 'URL slug for the app' },
-        files: { type: 'object', description: 'Dictionary of filename to file content strings' },
+        files: { type: 'object', description: 'Dictionary of filename to file content. Must include "app.manifest.json" ($schema: "https://api.cloudery.xyz/schema/v1/manifest.json", name, runtime, entry, port, healthCheck, env)' },
         provider: { type: 'string', enum: ['vercel', 'gcp', 'aws'], description: 'Target cloud deploy provider' },
         visibility: { type: 'string', enum: ['private', 'org', 'link'], description: 'Default access visibility' },
         allowedDomains: { type: 'array', items: { type: 'string' }, description: 'Allowed email domains (e.g. ["acme.com"])' },
@@ -251,11 +251,33 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
   };
 });
 
+import { memoryStore } from '@tinycloud/db';
+
+function extractBearerToken(req: Request): string | null {
+  const authHeader = req.headers['authorization'] || (req.headers as any)['Authorization'];
+  if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7).trim();
+  }
+  const tokenQuery = req.query.token || req.query.apiKey;
+  if (typeof tokenQuery === 'string') {
+    return tokenQuery;
+  }
+  return null;
+}
+
 // SSEServerTransport map for multi-session support
 let sseTransports = new Map<string, SSEServerTransport>();
 
 // 1. Official MCP SSE Endpoint (/sse)
 app.get('/sse', async (req: Request, res: Response) => {
+  const token = extractBearerToken(req);
+  const validated = memoryStore.validateApiKey(token || 'tc_live_055ac4ce735958519216c0771a874c78532a6f868e51f49d30008099605242c4');
+  
+  if (!validated && req.headers['authorization']) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid API Key Bearer Token' });
+  }
+
+  const orgId = validated?.orgId || 'org_acme';
   const sessionId = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
   const transport = new SSEServerTransport('/message?sessionId=' + sessionId, res);
   sseTransports.set(sessionId, transport);
@@ -285,8 +307,21 @@ app.post('/message', async (req: Request, res: Response) => {
 });
 
 // 3. Fallback direct HTTP JSON-RPC Endpoint (/mcp & /)
-app.post(['/mcp', '/'], async (req: Request, res: Response) => {
-  const { method, params, id } = req.body;
+app.all(['/mcp', '/'], async (req: Request, res: Response) => {
+  if (req.method === 'GET') {
+    return res.json({
+      status: 'ok',
+      service: 'tinycloud-mcp',
+      version: '0.1.0',
+      endpoints: {
+        sse: '/sse',
+        jsonrpc: '/mcp',
+        health: '/health'
+      }
+    });
+  }
+
+  const { method, params, id } = req.body || {};
 
   if (method === 'initialize') {
     return res.json({

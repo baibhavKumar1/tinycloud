@@ -21,6 +21,8 @@ interface AuditItem {
   timestamp: string;
 }
 
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://tinycloud-api-1054958029786.us-central1.run.app');
+
 export default function App() {
   const [apps, setApps] = useState<AppItem[]>([]);
   const [selectedApp, setSelectedApp] = useState<AppItem | null>(null);
@@ -32,7 +34,7 @@ export default function App() {
   // Fetch apps from Control Plane API
   const fetchApps = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/apps');
+      const res = await fetch(`${API_BASE_URL}/api/apps`);
       const data = await res.json();
       if (data.apps && data.apps.length > 0) {
         setApps(data.apps);
@@ -43,7 +45,7 @@ export default function App() {
             id: 'app_approval-tracker',
             name: 'Internal Approval Tracker',
             slug: 'approval-tracker',
-            shareUrl: 'https://approval-tracker.acme.tinycloud.app',
+            shareUrl: 'https://approval-tracker.cloudery.xyz',
             visibility: 'org',
             status: 'ready',
             ownerId: 'agent_claude',
@@ -53,7 +55,7 @@ export default function App() {
             id: 'app_team-metrics',
             name: 'Q3 Team Metrics Dashboard',
             slug: 'team-metrics',
-            shareUrl: 'https://team-metrics.acme.tinycloud.app',
+            shareUrl: 'https://team-metrics.cloudery.xyz',
             visibility: 'link',
             status: 'ready',
             ownerId: 'alex@acme.com',
@@ -68,7 +70,7 @@ export default function App() {
           id: 'app_approval-tracker',
           name: 'Internal Approval Tracker',
           slug: 'approval-tracker',
-          shareUrl: 'https://approval-tracker.acme.tinycloud.app',
+          shareUrl: 'https://approval-tracker.cloudery.xyz',
           visibility: 'org',
           status: 'ready',
           ownerId: 'agent_claude',
@@ -85,7 +87,7 @@ export default function App() {
   const handlePublishDemoApp = async () => {
     setPublishing(true);
     try {
-      const res = await fetch('http://localhost:4000/api/apps/publish', {
+      const res = await fetch(`${API_BASE_URL}/api/apps/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,7 +109,7 @@ export default function App() {
 
   const loadAuditLog = async (appId: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/apps/${appId}/audit`);
+      const res = await fetch(`${API_BASE_URL}/api/apps/${appId}/audit`);
       const data = await res.json();
       setAuditLog(data.auditLog || []);
     } catch {
@@ -136,7 +138,7 @@ export default function App() {
 
   const loadAccessRequests = async (appId: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/apps/${appId}/access-requests`);
+      const res = await fetch(`${API_BASE_URL}/api/apps/${appId}/access-requests`);
       const data = await res.json();
       setAccessRequests(data.accessRequests || []);
     } catch {
@@ -146,7 +148,7 @@ export default function App() {
 
   const handleApproveRequest = async (appId: string, requestId: string) => {
     try {
-      await fetch(`http://localhost:4000/api/apps/${appId}/access-requests/${requestId}/approve`, { method: 'POST' });
+      await fetch(`${API_BASE_URL}/api/apps/${appId}/access-requests/${requestId}/approve`, { method: 'POST' });
       await loadAccessRequests(appId);
       await fetchApps();
     } catch (e) {

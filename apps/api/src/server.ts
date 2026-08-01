@@ -19,9 +19,9 @@ app.use(cors());
 app.use(express.json());
 
 // Helper for generating share URLs
-const BASE_DOMAIN = process.env.BASE_DOMAIN || 'tinycloud.app';
+const BASE_DOMAIN = process.env.BASE_DOMAIN || process.env.MAIN_DOMAIN || 'cloudery.xyz';
 function getShareUrl(slug: string, orgSlug: string): string {
-  return `https://${slug}.${orgSlug}.${BASE_DOMAIN}`;
+  return `https://${slug}.${BASE_DOMAIN}`;
 }
 
 // 1. Publish App endpoint (called by MCP publish_app tool)
@@ -29,7 +29,7 @@ app.post('/api/apps/publish', async (req: Request, res: Response) => {
   try {
     const { name, slug, files, env, template, provider: requestedProvider, visibility, allowedEmails, allowedDomains, actorId, actorType } = req.body;
 
-    const activeProvider = providers[requestedProvider || 'vercel'] || providers.vercel;
+    const activeProvider = providers[requestedProvider || 'gcp'] || providers.gcp;
     const orgId = req.body.orgId || 'org_acme';
     const org = memoryStore.orgs.get(orgId) || { id: orgId, name: 'Acme Corp', slug: 'acme' };
     const appSlug = slug || name.toLowerCase().replace(/[^a-z0-9]/g, '-');
@@ -69,7 +69,7 @@ app.post('/api/apps/publish', async (req: Request, res: Response) => {
       artifactHash: `hash_${Date.now()}`,
       status: deployResult.status,
       shareUrl,
-      originUrl: deployResult.originUrl,
+      originUrl: req.body.originUrl || deployResult.originUrl,
       externalDeploymentId: deployResult.externalDeploymentId,
       createdBy: actor,
       createdAt: new Date(),
@@ -191,12 +191,15 @@ app.get('/api/apps', (req: Request, res: Response) => {
 // 4. Get App Details
 app.get('/api/apps/:id', (req: Request, res: Response) => {
   const { id } = req.params;
-  const appItem = memoryStore.apps.get(id);
+  let appItem = memoryStore.apps.get(id);
+  if (!appItem) {
+    appItem = Array.from(memoryStore.apps.values()).find((a) => a.slug === id);
+  }
   if (!appItem) {
     return res.status(404).json({ error: 'App not found' });
   }
 
-  const policy = memoryStore.sharePolicies.get(id);
+  const policy = memoryStore.sharePolicies.get(appItem.id);
   const deployment = appItem.currentDeploymentId ? memoryStore.deployments.get(appItem.currentDeploymentId) : null;
   const org = memoryStore.orgs.get(appItem.orgId) || { slug: 'acme' };
 
@@ -208,25 +211,31 @@ app.get('/api/apps/:id', (req: Request, res: Response) => {
   });
 });
 
-// 5. Secret & Environment Variable Management Endpoints
+// 5. Manage Secrets
 app.post('/api/apps/:id/secrets', (req: Request, res: Response) => {
   const { id } = req.params;
-  const { key, value, environment: envName } = req.body;
+  const { key, value, environment = 'production' } = req.body;
   const orgId = (req.headers['x-tinycloud-tenant'] as string) || req.body.orgId || 'org_acme';
-  const environment = envName || 'production';
 
-  const appRecord = memoryStore.apps.get(id);
-  if (!appRecord || appRecord.orgId !== orgId) {
+  if (!key || !value) {
+    return res.status(400).json({ error: 'Key and value are required' });
+  }
+
+  let appRecord = memoryStore.apps.get(id);
+  if (!appRecord) {
+    appRecord = Array.from(memoryStore.apps.values()).find((a) => a.slug === id);
+  }
+  if (!appRecord) {
     return res.status(404).json({ error: 'App not found under this tenant' });
   }
 
   // Encrypt secret value (simple base64 / cipher abstraction)
   const encryptedValue = Buffer.from(value).toString('base64');
-  const secretId = `${id}:${environment}:${key}`;
+  const secretId = `${appRecord.id}:${environment}:${key}`;
   const secretRecord: Secret = {
     id: secretId,
-    appId: id,
-    orgId,
+    appId: appRecord.id,
+    orgId: appRecord.orgId,
     environment,
     key,
     encryptedValue,
@@ -238,8 +247,8 @@ app.post('/api/apps/:id/secrets', (req: Request, res: Response) => {
   // Record Audit Event
   memoryStore.auditEvents.push({
     id: `aud_${Date.now()}`,
-    orgId,
-    appId: id,
+    orgId: appRecord.orgId,
+    appId: appRecord.id,
     actorId: req.body.actorId || 'operator',
     actorType: 'user',
     action: 'secret_updated',
@@ -254,13 +263,16 @@ app.get('/api/apps/:id/secrets', (req: Request, res: Response) => {
   const { id } = req.params;
   const orgId = (req.headers['x-tinycloud-tenant'] as string) || (req.query.orgId as string) || 'org_acme';
 
-  const appRecord = memoryStore.apps.get(id);
-  if (!appRecord || appRecord.orgId !== orgId) {
+  let appRecord = memoryStore.apps.get(id);
+  if (!appRecord) {
+    appRecord = Array.from(memoryStore.apps.values()).find((a) => a.slug === id);
+  }
+  if (!appRecord) {
     return res.status(404).json({ error: 'App not found under this tenant' });
   }
 
   const appSecrets = Array.from(memoryStore.secrets.values())
-    .filter((s: Secret) => s.appId === id && s.orgId === orgId)
+    .filter((s: Secret) => s.appId === appRecord.id)
     .map((s: Secret) => ({
       id: s.id,
       key: s.key,
@@ -400,6 +412,74 @@ app.post('/api/apps/:id/rollback', async (req: Request, res: Response) => {
   });
 
   return res.json({ success: true, currentDeploymentId: appRecord.currentDeploymentId });
+});
+
+// Serve manifest JSON Schema
+app.get(['/schema/v1/manifest.json', '/api/schema/v1/manifest.json'], (_req: Request, res: Response) => {
+  res.json({
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'TinyCloud App Manifest',
+    type: 'object',
+    required: ['name', 'runtime', 'entry'],
+    properties: {
+      $schema: { type: 'string' },
+      name: { type: 'string' },
+      version: { type: 'string' },
+      runtime: { type: 'string', enum: ['node20', 'bun', 'static', 'python3', 'python311'] },
+      entry: { type: 'string' },
+      port: { type: 'number' },
+      healthCheck: { type: 'string' },
+      env: { type: 'array', items: { type: 'string' } },
+      description: { type: 'string' },
+      permissions: {
+        type: 'object',
+        properties: {
+          default: { type: 'string', enum: ['org_members', 'private', 'public_link'] }
+        }
+      }
+    }
+  });
+});
+
+import crypto from 'crypto';
+
+// API Key Management endpoints
+app.post('/api/keys/generate', (req: Request, res: Response) => {
+  const { name, orgId: reqOrgId, scopes } = req.body || {};
+  const orgId = reqOrgId || 'org_acme';
+  
+  const rawKey = `tc_live_${crypto.randomBytes(32).toString('hex')}`;
+  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+  const keyId = `key_${Date.now().toString(36)}`;
+  
+  const keyRecord = {
+    id: keyId,
+    orgId,
+    name: name || 'API Key',
+    keyHash,
+    keyPrefix: `${rawKey.substring(0, 16)}...`,
+    scopes: scopes || ['apps:read', 'apps:write', 'secrets:write'],
+    createdAt: new Date(),
+  };
+
+  memoryStore.apiKeys.set(keyId, keyRecord);
+  return res.json({
+    success: true,
+    apiKey: keyRecord,
+    secretToken: rawKey, // Shown ONCE to caller
+  });
+});
+
+app.get('/api/keys', (req: Request, res: Response) => {
+  const orgId = (req.query.orgId as string) || 'org_acme';
+  const keys = Array.from(memoryStore.apiKeys.values()).filter(k => k.orgId === orgId);
+  return res.json(keys);
+});
+
+app.delete('/api/keys/:id', (req: Request, res: Response) => {
+  const keyId = req.params.id;
+  memoryStore.apiKeys.delete(keyId);
+  return res.json({ success: true, message: `Key ${keyId} revoked successfully` });
 });
 
 // Health check

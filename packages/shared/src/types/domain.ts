@@ -7,6 +7,17 @@ export interface Organization {
   createdAt: Date;
 }
 
+export interface ApiKey {
+  id: string;
+  orgId: string;
+  name: string;
+  keyHash: string;
+  keyPrefix: string;
+  scopes: string[];
+  createdAt: Date;
+  lastUsedAt?: Date;
+}
+
 export interface User {
   id: string;
   email: string;
