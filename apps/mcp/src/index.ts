@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 4001;
 const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://tinycloud-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // Initialize Official Model Context Protocol (MCP) Server instance
 const mcpServer = new Server(
@@ -28,13 +28,15 @@ const mcpServer = new Server(
 const TOOLS = [
   {
     name: 'publish_app',
-    description: 'Publish and deploy an agent or internal app for your organization. Registers the app in the org catalog, deploys the artifact via chosen deploy provider (vercel, gcp, aws), and applies domain/org security share policy.',
+    description: 'Publish and deploy an agent or internal app for your organization in 1 single call. Registers the app, builds container artifact, automatically encrypts and mounts secrets in GCP Secret Manager, and applies security share policy.',
     inputSchema: {
       type: 'object',
       properties: {
-        name: { type: 'string', description: 'Name of the internal tool or agent' },
+        name: { type: 'string', description: 'Name of the internal tool or agent (e.g. "sales-bot")' },
         slug: { type: 'string', description: 'URL slug for the app' },
-        files: { type: 'object', description: 'Dictionary of filename to file content. Must include "app.manifest.json" ($schema: "https://api.cloudery.xyz/schema/v1/manifest.json", name, runtime, entry, port, healthCheck, env)' },
+        runtime: { type: 'string', description: 'Runtime environment specification. MUST follow strict format "python311", "python314", "node20", "node23", "node24" (NO DOTS!).' },
+        files: { type: 'object', description: 'Dictionary of filename to file content (e.g. {"main.py": "...", "requirements.txt": "..."}). Include "app.manifest.json" ($schema, name, runtime: "python311", entry: "main.py", filesCount: 6, port: 8080).' },
+        secrets: { type: 'object', description: 'Optional dictionary of environment secret keys to encrypted values (e.g. {"OPENROUTER_API_KEY": "sk-or-v1-..."}). Secrets are automatically encrypted in GCP Secret Manager and mounted to Cloud Run.' },
         provider: { type: 'string', enum: ['vercel', 'gcp', 'aws'], description: 'Target cloud deploy provider' },
         visibility: { type: 'string', enum: ['private', 'org', 'link'], description: 'Default access visibility' },
         allowedDomains: { type: 'array', items: { type: 'string' }, description: 'Allowed email domains (e.g. ["acme.com"])' },
@@ -101,12 +103,12 @@ const TOOLS = [
   },
   {
     name: 'set_app_secret',
-    description: 'Store or update an encrypted environment secret variable for an app (scoped to production, staging, or development).',
+    description: 'Store or update an encrypted environment secret variable for an app (scoped to production, staging, or development). Auto-mounts to GCP Secret Manager.',
     inputSchema: {
       type: 'object',
       properties: {
         appId: { type: 'string', description: 'The unique appId' },
-        key: { type: 'string', description: 'Environment variable key name (e.g. DATABASE_URL)' },
+        key: { type: 'string', description: 'Environment variable key name (e.g. OPENROUTER_API_KEY)' },
         value: { type: 'string', description: 'Secret variable value' },
         environment: { type: 'string', enum: ['production', 'staging', 'development'], description: 'Target deployment environment' },
       },
@@ -226,7 +228,7 @@ async function handleToolCall(name: string, args: any) {
           name: args.name,
           files,
           template: args.templateId,
-          provider: args.provider || 'vercel',
+          provider: args.provider || 'gcp',
           allowedDomains: args.allowedDomains,
           actorId: 'agent_claude',
           actorType: 'agent',
@@ -251,7 +253,25 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
   };
 });
 
-import { memoryStore } from '@tinycloud/db';
+async function validateApiKey(rawKey: string): Promise<{ orgId: string; scopes: string[] } | null> {
+  if (!rawKey) return null;
+  try {
+    const res = await fetch(`${API_URL}/api/keys/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: rawKey }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.orgId) {
+        return { orgId: data.orgId, scopes: data.scopes || [] };
+      }
+    }
+  } catch (e) {
+    console.error('[MCP Auth Error]:', e);
+  }
+  return null;
+}
 
 function extractBearerToken(req: Request): string | null {
   const authHeader = req.headers['authorization'] || (req.headers as any)['Authorization'];
@@ -271,8 +291,8 @@ let sseTransports = new Map<string, SSEServerTransport>();
 // 1. Official MCP SSE Endpoint (/sse)
 app.get('/sse', async (req: Request, res: Response) => {
   const token = extractBearerToken(req);
-  const validated = memoryStore.validateApiKey(token || 'tc_live_055ac4ce735958519216c0771a874c78532a6f868e51f49d30008099605242c4');
-  
+  const validated = await validateApiKey(token || 'tc_live_055ac4ce735958519216c0771a874c78532a6f868e51f49d30008099605242c4');
+
   if (!validated && req.headers['authorization']) {
     return res.status(401).json({ error: 'Unauthorized: Invalid API Key Bearer Token' });
   }

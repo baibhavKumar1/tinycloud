@@ -5,6 +5,8 @@ export interface DeployOptions {
   projectName: string;
   files: Record<string, string>; // filename -> file content
   env?: Record<string, string>;
+  secrets?: Record<string, string>; // direct secret mapping
+  runtime?: string; // e.g. python311, python314, node20, node24
 }
 
 export interface DeployResult {

@@ -22,7 +22,7 @@ export class MemoryStore {
   public auditEvents: any[] = [];
 
   constructor() {
-    // Seed default demo tenants
+    // Seed default demo orgs
     const acmeOrg = {
       id: 'org_acme',
       name: 'Acme Corp',
@@ -68,15 +68,9 @@ export class MemoryStore {
   public validateApiKey(rawKey: string): { orgId: string; scopes: string[] } | null {
     if (!rawKey) return null;
     const hash = crypto.createHash('sha256').update(rawKey).digest('hex');
-    for (const keyObj of this.apiKeys.values()) {
-      if (keyObj.keyHash === hash) {
-        keyObj.lastUsedAt = new Date();
-        return { orgId: keyObj.orgId, scopes: keyObj.scopes };
-      }
-    }
-    for (const org of this.orgs.values()) {
-      if (org.apiKey === rawKey || rawKey === 'tc_live_055ac4ce735958519216c0771a874c78532a6f868e51f49d30008099605242c4') {
-        return { orgId: org.id, scopes: ['*'] };
+    for (const apiKey of this.apiKeys.values()) {
+      if (apiKey.keyHash === hash) {
+        return { orgId: apiKey.orgId, scopes: apiKey.scopes || ['*'] };
       }
     }
     return null;

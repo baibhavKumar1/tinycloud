@@ -1,1 +1,1 @@
-{"root":["./src/client.ts","./src/index.ts","./src/sync-db.ts","./src/schema/index.ts"],"version":"5.9.3"}
+{"root":["./src/client.ts","./src/index.ts","./src/repository.ts","./src/sync-db.ts","./src/schema/index.ts"],"version":"5.9.3"}

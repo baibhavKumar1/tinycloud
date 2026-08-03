@@ -85,3 +85,14 @@ export const accessRequests = pgTable('access_requests', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const apiKeys = pgTable('api_keys', {
+  id: text('id').primaryKey(),
+  orgId: text('org_id').references(() => organizations.id).notNull(),
+  name: text('name').notNull(),
+  keyHash: text('key_hash').notNull().unique(),
+  keyPrefix: text('key_prefix').notNull(),
+  scopes: jsonb('scopes').$type<string[]>().default([]).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  lastUsedAt: timestamp('last_used_at'),
+});
