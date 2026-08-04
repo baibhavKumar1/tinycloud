@@ -277,7 +277,8 @@ CMD ["npm", "start"]
     const serviceName = await this.createOrLinkProject(options.projectName);
     const version = Date.now().toString(36);
     const mockDeploymentId = `gcp_dpl_${version}`;
-    const originUrl = `https://${serviceName}-1054958029786.${this.region}.run.app`;
+    const projectNumber = process.env.GCP_PROJECT_NUMBER || '1054958029786';
+    const originUrl = `https://${serviceName}-${projectNumber}.${this.region}.run.app`;
     const imageTag = `${this.region}-docker.pkg.dev/${this.projectId}/agents/${options.appSlug}:${version}`;
 
     const accessToken = await this.getAccessToken();
@@ -298,7 +299,7 @@ CMD ["npm", "start"]
     try {
       console.log(`[GCPCloudRunDeployProvider] Deploying ${serviceName} on project ${this.projectId}...`);
 
-      const bucketName = `agent-api-483208_cloudbuild`;
+      const bucketName = process.env.GCP_BUILD_BUCKET || `${this.projectId}_cloudbuild`;
       const objectName = `source/${options.appSlug}-${version}.tar.gz`;
 
       // 1. Create source tarball
@@ -396,7 +397,7 @@ CMD ["npm", "start"]
       // 4. Provision or Update Cloud Run Service via GCP Cloud Run v2 REST API (ONLY CALL AFTER BUILD COMPLETES)
       console.log(`[GCP Cloud Run] Provisioning Cloud Run service ${serviceName}...`);
       const serviceUrl = `https://run.googleapis.com/v2/projects/${this.projectId}/locations/${this.region}/services/${serviceName}`;
-      const runtimeSa = 'tinycloud-control-plane-sa@agent-api-483208.iam.gserviceaccount.com';
+      const runtimeSa = process.env.GCP_RUNTIME_SA || `cloudery-control-plane-sa@${this.projectId}.iam.gserviceaccount.com`;
       const envVars: any[] = Object.entries(options.env || {}).map(([name, value]) => ({ name, value }));
 
       // 4.5. Create and Mount Secrets

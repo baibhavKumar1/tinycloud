@@ -5,7 +5,9 @@ import { SharePolicy } from '@cloudery/shared';
 
 const app = express();
 const PORT = process.env.PORT || 4002;
-const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://cloudery-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
+const GCP_PROJECT_NUMBER = process.env.GCP_PROJECT_NUMBER || '1054958029786';
+const GCP_REGION = process.env.GCP_REGION || 'us-central1';
+const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? `https://cloudery-api-${GCP_PROJECT_NUMBER}.${GCP_REGION}.run.app` : 'http://localhost:4000');
 
 app.use(cors());
 app.use(express.json());
@@ -151,10 +153,10 @@ const handleProxyOrRoot = async (req: Request, res: Response) => {
 
   // 1. Dispatch Core Infrastructure Services (api, mcp, app, www)
   const CORE_MAP: Record<string, string> = {
-    api: 'https://cloudery-api-1054958029786.us-central1.run.app',
-    mcp: 'https://cloudery-mcp-1054958029786.us-central1.run.app',
-    app: 'https://cloudery-web-1054958029786.us-central1.run.app',
-    www: 'https://cloudery-web-1054958029786.us-central1.run.app',
+    api: process.env.API_URL || process.env.CLOUD_RUN_API_URL || `https://cloudery-api-${GCP_PROJECT_NUMBER}.${GCP_REGION}.run.app`,
+    mcp: process.env.MCP_URL || process.env.CLOUD_RUN_MCP_URL || `https://cloudery-mcp-${GCP_PROJECT_NUMBER}.${GCP_REGION}.run.app`,
+    app: process.env.WEB_URL || process.env.CLOUD_RUN_WEB_URL || `https://cloudery-web-${GCP_PROJECT_NUMBER}.${GCP_REGION}.run.app`,
+    www: process.env.WEB_URL || process.env.CLOUD_RUN_WEB_URL || `https://cloudery-web-${GCP_PROJECT_NUMBER}.${GCP_REGION}.run.app`,
   };
 
   const coreSlug = CORE_MAP[xAgent] ? xAgent : (xOriginalHost.startsWith('api.') ? 'api' : xOriginalHost.startsWith('mcp.') ? 'mcp' : (xOriginalHost.startsWith('app.') || xOriginalHost.startsWith('www.')) ? 'app' : null);
@@ -209,7 +211,7 @@ const handleProxyOrRoot = async (req: Request, res: Response) => {
     const originUrl = (req.query.originUrl as string)
       || (req.headers['x-origin-url'] as string)
       || (appItem as any).originUrl
-      || (appItem.externalRef ? `https://${appItem.externalRef}-1054958029786.us-central1.run.app` : null);
+      || (appItem.externalRef ? `https://${appItem.externalRef}-${GCP_PROJECT_NUMBER}.${GCP_REGION}.run.app` : null);
     const reqPath = (req.query.path as string) || (req.path === '/' ? '' : req.path);
 
     if (originUrl && (originUrl.startsWith('http://') || originUrl.startsWith('https://'))) {

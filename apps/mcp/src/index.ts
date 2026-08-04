@@ -6,7 +6,9 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 
 const app = express();
 const PORT = process.env.PORT || 4001;
-const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://cloudery-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
+const GCP_PROJECT_NUMBER = process.env.GCP_PROJECT_NUMBER || '1054958029786';
+const GCP_REGION = process.env.GCP_REGION || 'us-central1';
+const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? `https://cloudery-api-${GCP_PROJECT_NUMBER}.${GCP_REGION}.run.app` : 'http://localhost:4000');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

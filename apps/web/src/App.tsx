@@ -21,7 +21,7 @@ interface AuditItem {
   timestamp: string;
 }
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://cloudery-api-1054958029786.us-central1.run.app');
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (import.meta as any).env?.VITE_CONTROL_PLANE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://api.cloudery.xyz');
 
 export default function App() {
   const [apps, setApps] = useState<AppItem[]>([]);

@@ -435,7 +435,7 @@ app.get('/api/apps/:id', async (req: Request, res: Response) => {
       name: cleanSlug,
       description: 'GCP Cloud Run Service',
       shareUrl: `https://${cleanSlug}.cloudery.xyz`,
-      originUrl: `https://${serviceName}-1054958029786.us-central1.run.app`,
+      originUrl: `https://${serviceName}-${process.env.GCP_PROJECT_NUMBER || '1054958029786'}.${process.env.GCP_REGION || 'us-central1'}.run.app`,
       status: 'ready',
       visibility: 'org',
     };

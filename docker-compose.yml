@@ -25,9 +25,13 @@ services:
       - DATABASE_URL=postgres://postgres:postgrespassword@postgres:5432/cloudery
       - VERCEL_TOKEN=${VERCEL_TOKEN}
       - VERCEL_TEAM_ID=${VERCEL_TEAM_ID}
-      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-agent-api-483208}
+      - GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER:-1054958029786}
       - GCP_REGION=${GCP_REGION:-us-central1}
       - AWS_REGION=${AWS_REGION:-us-east-1}
+      - API_URL=${API_URL}
+      - MCP_URL=${MCP_URL}
+      - WEB_URL=${WEB_URL}
     depends_on:
       - postgres
 

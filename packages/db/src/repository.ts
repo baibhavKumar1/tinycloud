@@ -245,10 +245,12 @@ export class DbRepository {
             ? (await db.select().from(schema.deployments).where(eq(schema.deployments.id, app.currentDeploymentId)))[0]
             : null;
           const sharePolicy = (await db.select().from(schema.sharePolicies).where(eq(schema.sharePolicies.appId, app.id)))[0];
+          const projectNumber = process.env.GCP_PROJECT_NUMBER || '1054958029786';
+          const gcpRegion = process.env.GCP_REGION || 'us-central1';
           return {
             ...app,
             shareUrl: currentDeployment?.shareUrl || `https://${app.slug}.cloudery.xyz`,
-            originUrl: currentDeployment?.originUrl || (app.externalRef ? `https://${app.externalRef}-1054958029786.us-central1.run.app` : null),
+            originUrl: currentDeployment?.originUrl || (app.externalRef ? `https://${app.externalRef}-${projectNumber}.${gcpRegion}.run.app` : null),
             visibility: sharePolicy?.visibility || 'org',
             status: currentDeployment?.status || 'ready',
           };
@@ -259,10 +261,12 @@ export class DbRepository {
     }
     const memApp = memoryStore.apps.get(appId);
     if (!memApp) return null;
+    const projectNumber = process.env.GCP_PROJECT_NUMBER || '1054958029786';
+    const gcpRegion = process.env.GCP_REGION || 'us-central1';
     return {
       ...memApp,
       shareUrl: `https://${memApp.slug}.cloudery.xyz`,
-      originUrl: memApp.originUrl || (memApp.externalRef ? `https://${memApp.externalRef}-1054958029786.us-central1.run.app` : null),
+      originUrl: memApp.originUrl || (memApp.externalRef ? `https://${memApp.externalRef}-${projectNumber}.${gcpRegion}.run.app` : null),
       visibility: memoryStore.sharePolicies.get(memApp.id)?.visibility || 'org',
       status: memoryStore.deployments.get(memApp.currentDeploymentId)?.status || 'ready',
     };
