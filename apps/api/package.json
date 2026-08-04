@@ -1,5 +1,5 @@
 {
-  "name": "@tinycloud/api",
+  "name": "@cloudery/api",
   "version": "0.1.0",
   "main": "./dist/server.js",
   "scripts": {
@@ -8,11 +8,11 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@tinycloud/db": "workspace:*",
-    "@tinycloud/deploy-aws": "workspace:*",
-    "@tinycloud/deploy-gcp": "workspace:*",
-    "@tinycloud/deploy-vercel": "workspace:*",
-    "@tinycloud/shared": "workspace:*",
+    "@cloudery/db": "workspace:*",
+    "@cloudery/deploy-aws": "workspace:*",
+    "@cloudery/deploy-gcp": "workspace:*",
+    "@cloudery/deploy-vercel": "workspace:*",
+    "@cloudery/shared": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.19.2"
   },

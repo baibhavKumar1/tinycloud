@@ -1,7 +1,7 @@
 # Codex CLI Integration
 
-Add TinyCloud Remote MCP server to your Codex CLI config:
+Add Cloudery Remote MCP server to your Codex CLI config:
 
 ```bash
-codex mcp register tinycloud --url http://localhost:4001/mcp
+codex mcp register cloudery --url http://localhost:4001/mcp
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "@tinycloud/gateway",
+  "name": "@cloudery/gateway",
   "version": "0.1.0",
   "main": "./dist/index.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@tinycloud/db": "workspace:*",
-    "@tinycloud/shared": "workspace:*",
+    "@cloudery/db": "workspace:*",
+    "@cloudery/shared": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "http-proxy-middleware": "^3.0.0"

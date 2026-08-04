@@ -21,7 +21,7 @@ interface AuditItem {
   timestamp: string;
 }
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://tinycloud-api-1054958029786.us-central1.run.app');
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://cloudery-api-1054958029786.us-central1.run.app');
 
 export default function App() {
   const [apps, setApps] = useState<AppItem[]>([]);
@@ -195,7 +195,7 @@ export default function App() {
           </div>
           <div>
             <h1 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #fff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              TinyCloud
+              Cloudery
             </h1>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>Agent-First App Registry & Trust Layer</span>
           </div>

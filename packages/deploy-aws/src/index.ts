@@ -1,4 +1,4 @@
-import { DeployProvider, DeployOptions, DeployResult, DeploymentStatus } from '@tinycloud/shared';
+import { DeployProvider, DeployOptions, DeployResult, DeploymentStatus } from '@cloudery/shared';
 
 export class AWSAppRunnerDeployProvider implements DeployProvider {
   public name = 'aws-apprunner';

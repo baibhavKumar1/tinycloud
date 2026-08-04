@@ -16,5 +16,5 @@ app.get('*', (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`[TinyCloud Web UI] Serving catalog dashboard on port ${PORT}`);
+  console.log(`[Cloudery Web UI] Serving catalog dashboard on port ${PORT}`);
 });

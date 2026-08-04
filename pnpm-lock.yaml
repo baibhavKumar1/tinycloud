@@ -17,19 +17,19 @@ importers:
 
   apps/api:
     dependencies:
-      '@tinycloud/db':
+      '@cloudery/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@tinycloud/deploy-aws':
+      '@cloudery/deploy-aws':
         specifier: workspace:*
         version: link:../../packages/deploy-aws
-      '@tinycloud/deploy-gcp':
+      '@cloudery/deploy-gcp':
         specifier: workspace:*
         version: link:../../packages/deploy-gcp
-      '@tinycloud/deploy-vercel':
+      '@cloudery/deploy-vercel':
         specifier: workspace:*
         version: link:../../packages/deploy-vercel
-      '@tinycloud/shared':
+      '@cloudery/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       cors:
@@ -57,10 +57,10 @@ importers:
 
   apps/gateway:
     dependencies:
-      '@tinycloud/db':
+      '@cloudery/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@tinycloud/shared':
+      '@cloudery/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       cors:
@@ -91,12 +91,12 @@ importers:
 
   apps/mcp:
     dependencies:
+      '@cloudery/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@modelcontextprotocol/sdk':
         specifier: ^0.6.0
         version: 0.6.1
-      '@tinycloud/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       cors:
         specifier: ^2.8.5
         version: 2.8.6
@@ -122,7 +122,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@tinycloud/shared':
+      '@cloudery/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       express:
@@ -159,7 +159,7 @@ importers:
 
   packages/db:
     dependencies:
-      '@tinycloud/shared':
+      '@cloudery/shared':
         specifier: workspace:*
         version: link:../shared
       drizzle-orm:
@@ -184,7 +184,7 @@ importers:
 
   packages/deploy-aws:
     dependencies:
-      '@tinycloud/shared':
+      '@cloudery/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:
@@ -197,7 +197,7 @@ importers:
 
   packages/deploy-gcp:
     dependencies:
-      '@tinycloud/shared':
+      '@cloudery/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:
@@ -210,7 +210,7 @@ importers:
 
   packages/deploy-vercel:
     dependencies:
-      '@tinycloud/shared':
+      '@cloudery/shared':
         specifier: workspace:*
         version: link:../shared
     devDependencies:

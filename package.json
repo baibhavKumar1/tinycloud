@@ -1,5 +1,5 @@
 {
-  "name": "tinycloud-monorepo",
+  "name": "cloudery-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo run build",

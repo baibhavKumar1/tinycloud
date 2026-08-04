@@ -6,7 +6,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 
 const app = express();
 const PORT = process.env.PORT || 4001;
-const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://tinycloud-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
+const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://cloudery-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -14,7 +14,7 @@ app.use(express.json({ limit: '50mb' }));
 // Initialize Official Model Context Protocol (MCP) Server instance
 const mcpServer = new Server(
   {
-    name: 'tinycloud-mcp',
+    name: 'cloudery-mcp',
     version: '0.1.0',
   },
   {
@@ -331,7 +331,7 @@ app.all(['/mcp', '/'], async (req: Request, res: Response) => {
   if (req.method === 'GET') {
     return res.json({
       status: 'ok',
-      service: 'tinycloud-mcp',
+      service: 'cloudery-mcp',
       version: '0.1.0',
       endpoints: {
         sse: '/sse',
@@ -350,7 +350,7 @@ app.all(['/mcp', '/'], async (req: Request, res: Response) => {
       result: {
         protocolVersion: '2025-03-26',
         capabilities: { tools: {} },
-        serverInfo: { name: 'tinycloud-mcp', version: '0.1.0' },
+        serverInfo: { name: 'cloudery-mcp', version: '0.1.0' },
       },
     });
   }
@@ -389,8 +389,8 @@ app.all(['/mcp', '/'], async (req: Request, res: Response) => {
   });
 });
 
-app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'tinycloud-mcp' }));
+app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'cloudery-mcp' }));
 
 app.listen(PORT, () => {
-  console.log(`[TinyCloud MCP] Official @modelcontextprotocol/sdk Server running on http://localhost:${PORT}`);
+  console.log(`[Cloudery MCP] Official @modelcontextprotocol/sdk Server running on http://localhost:${PORT}`);
 });

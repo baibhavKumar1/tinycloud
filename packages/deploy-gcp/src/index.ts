@@ -1,4 +1,4 @@
-import { DeployProvider, DeployOptions, DeployResult, DeploymentStatus } from '@tinycloud/shared';
+import { DeployProvider, DeployOptions, DeployResult, DeploymentStatus } from '@cloudery/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

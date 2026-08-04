@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { memoryStore, dbRepository } from '@tinycloud/db';
-import { App, Deployment, SharePolicy, AuditEvent, DeployProvider } from '@tinycloud/shared';
-import { VercelDeployProvider } from '@tinycloud/deploy-vercel';
-import { GCPCloudRunDeployProvider } from '@tinycloud/deploy-gcp';
-import { AWSAppRunnerDeployProvider } from '@tinycloud/deploy-aws';
+import { memoryStore, dbRepository } from '@cloudery/db';
+import { App, Deployment, SharePolicy, AuditEvent, DeployProvider } from '@cloudery/shared';
+import { VercelDeployProvider } from '@cloudery/deploy-vercel';
+import { GCPCloudRunDeployProvider } from '@cloudery/deploy-gcp';
+import { AWSAppRunnerDeployProvider } from '@cloudery/deploy-aws';
 import crypto from 'crypto';
 
 const app = express();
@@ -577,9 +577,9 @@ app.delete('/api/keys/:id', async (req: Request, res: Response) => {
 
 // 14. Health Check
 app.get('/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', service: 'tinycloud-api' });
+  res.json({ status: 'ok', service: 'cloudery-api' });
 });
 
 app.listen(PORT, () => {
-  console.log(`[TinyCloud API] Control plane running on http://localhost:${PORT}`);
+  console.log(`[Cloudery API] Control plane running on http://localhost:${PORT}`);
 });

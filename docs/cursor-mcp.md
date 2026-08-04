@@ -1,12 +1,12 @@
 # Cursor MCP Integration
 
-Add TinyCloud Remote MCP server to `.cursor/mcp.json`:
+Add Cloudery Remote MCP server to `.cursor/mcp.json`:
 
 ### Production Remote Server (`cloudery.xyz`):
 ```json
 {
   "mcpServers": {
-    "tinycloud": {
+    "cloudery": {
       "command": "npx",
       "args": [
         "-y",
@@ -22,7 +22,7 @@ Add TinyCloud Remote MCP server to `.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "tinycloud": {
+    "cloudery": {
       "url": "http://localhost:4001/mcp"
     }
   }

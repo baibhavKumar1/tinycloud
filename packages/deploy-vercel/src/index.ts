@@ -1,4 +1,4 @@
-import { DeployProvider, DeployOptions, DeployResult, DeploymentStatus } from '@tinycloud/shared';
+import { DeployProvider, DeployOptions, DeployResult, DeploymentStatus } from '@cloudery/shared';
 
 export class VercelDeployProvider implements DeployProvider {
   public name = 'vercel';

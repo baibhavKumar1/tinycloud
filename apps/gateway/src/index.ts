@@ -1,11 +1,11 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { memoryStore, dbRepository } from '@tinycloud/db';
-import { SharePolicy } from '@tinycloud/shared';
+import { memoryStore, dbRepository } from '@cloudery/db';
+import { SharePolicy } from '@cloudery/shared';
 
 const app = express();
 const PORT = process.env.PORT || 4002;
-const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://tinycloud-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
+const API_URL = process.env.API_URL || process.env.CONTROL_PLANE_URL || (process.env.K_SERVICE ? 'https://cloudery-api-1054958029786.us-central1.run.app' : 'http://localhost:4000');
 
 app.use(cors());
 app.use(express.json());
@@ -13,8 +13,8 @@ app.use(express.json());
 // Auth Gateway Middleware enforcing SharePolicy before traffic reaches origin
 async function enforceSharePolicy(req: Request, res: Response, next: NextFunction) {
   const host = req.headers.host || '';
-  const appIdParam = (req.headers['x-tinycloud-app-id'] as string) || (req.query.appId as string);
-  const requestTenantHeader = req.headers['x-tinycloud-tenant'] as string;
+  const appIdParam = (req.headers['x-cloudery-app-id'] as string) || (req.headers['x-tinycloud-app-id'] as string) || (req.query.appId as string);
+  const requestTenantHeader = (req.headers['x-cloudery-tenant'] as string) || (req.headers['x-tinycloud-tenant'] as string);
   const userEmail = (req.headers['x-user-email'] as string) || 'alex@acme.com';
 
   const xAgent = ((req.headers['x-agent'] as string) || '').toLowerCase();
@@ -124,6 +124,8 @@ async function enforceSharePolicy(req: Request, res: Response, next: NextFunctio
   }
 
   // Pass-through validation success: inject audit & header context
+  req.headers['x-cloudery-tenant'] = targetTenantSlug;
+  req.headers['x-cloudery-identity'] = userEmail;
   req.headers['x-tinycloud-tenant'] = targetTenantSlug;
   req.headers['x-tinycloud-identity'] = userEmail;
 
@@ -145,14 +147,14 @@ const handleProxyOrRoot = async (req: Request, res: Response) => {
   const host = req.headers.host || '';
   const xAgent = ((req.headers['x-agent'] as string) || '').toLowerCase();
   const xOriginalHost = ((req.headers['x-original-host'] as string) || '').toLowerCase();
-  const appId = (req.headers['x-tinycloud-app-id'] as string) || (req.query.appId as string);
+  const appId = (req.headers['x-cloudery-app-id'] as string) || (req.headers['x-tinycloud-app-id'] as string) || (req.query.appId as string);
 
   // 1. Dispatch Core Infrastructure Services (api, mcp, app, www)
   const CORE_MAP: Record<string, string> = {
-    api: 'https://tinycloud-api-1054958029786.us-central1.run.app',
-    mcp: 'https://tinycloud-mcp-1054958029786.us-central1.run.app',
-    app: 'https://tinycloud-web-1054958029786.us-central1.run.app',
-    www: 'https://tinycloud-web-1054958029786.us-central1.run.app',
+    api: 'https://cloudery-api-1054958029786.us-central1.run.app',
+    mcp: 'https://cloudery-mcp-1054958029786.us-central1.run.app',
+    app: 'https://cloudery-web-1054958029786.us-central1.run.app',
+    www: 'https://cloudery-web-1054958029786.us-central1.run.app',
   };
 
   const coreSlug = CORE_MAP[xAgent] ? xAgent : (xOriginalHost.startsWith('api.') ? 'api' : xOriginalHost.startsWith('mcp.') ? 'mcp' : (xOriginalHost.startsWith('app.') || xOriginalHost.startsWith('www.')) ? 'app' : null);
@@ -215,8 +217,10 @@ const handleProxyOrRoot = async (req: Request, res: Response) => {
         const targetUrl = `${originUrl.replace(/\/$/, '')}${reqPath}`;
         const proxyHeaders: Record<string, string> = {
           'Content-Type': req.headers['content-type'] || 'application/json',
-          'X-TinyCloud-Tenant': (req.headers['x-tinycloud-tenant'] as string) || 'acme',
-          'X-TinyCloud-Identity': (req.headers['x-tinycloud-identity'] as string) || 'alex@acme.com',
+          'X-Cloudery-Tenant': (req.headers['x-cloudery-tenant'] as string) || (req.headers['x-tinycloud-tenant'] as string) || 'acme',
+          'X-Cloudery-Identity': (req.headers['x-cloudery-identity'] as string) || (req.headers['x-tinycloud-identity'] as string) || 'alex@acme.com',
+          'X-TinyCloud-Tenant': (req.headers['x-cloudery-tenant'] as string) || (req.headers['x-tinycloud-tenant'] as string) || 'acme',
+          'X-TinyCloud-Identity': (req.headers['x-cloudery-identity'] as string) || (req.headers['x-tinycloud-identity'] as string) || 'alex@acme.com',
           ...(req.headers['authorization'] ? { authorization: req.headers['authorization'] as string } : {}),
         };
 
@@ -249,13 +253,13 @@ const handleProxyOrRoot = async (req: Request, res: Response) => {
   }
 
   if (req.path === '/health') {
-    return res.json({ status: 'ok', service: 'tinycloud-gateway' });
+    return res.json({ status: 'ok', service: 'cloudery-gateway' });
   }
 
   return res.json({
     status: 'ok',
-    service: 'tinycloud-gateway',
-    gatewayMessage: 'TinyCloud Edge Auth Gateway is running',
+    service: 'cloudery-gateway',
+    gatewayMessage: 'Cloudery Edge Auth Gateway is running',
     usage: 'Access apps via {app-slug}.cloudery.xyz or /proxy?appId={appId}'
   });
 };
@@ -263,7 +267,7 @@ const handleProxyOrRoot = async (req: Request, res: Response) => {
 app.get(['/schema/v1/manifest.json', '/api/schema/v1/manifest.json'], (_req, res) => {
   res.json({
     $schema: 'http://json-schema.org/draft-07/schema#',
-    title: 'TinyCloud App Manifest',
+    title: 'Cloudery App Manifest',
     type: 'object',
     required: ['name', 'runtime', 'entry'],
     properties: {
@@ -290,5 +294,5 @@ app.use('/proxy/*', enforceSharePolicy, handleProxyOrRoot);
 app.all('*', enforceSharePolicy, handleProxyOrRoot);
 
 app.listen(PORT, () => {
-  console.log(`[TinyCloud Gateway] Auth Gateway proxy running on http://localhost:${PORT}`);
+  console.log(`[Cloudery Gateway] Auth Gateway proxy running on http://localhost:${PORT}`);
 });

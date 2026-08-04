@@ -1,5 +1,5 @@
 {
-  "name": "@tinycloud/db",
+  "name": "@cloudery/db",
   "version": "0.1.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,7 +9,7 @@
     "db:push": "drizzle-kit push:pg"
   },
   "dependencies": {
-    "@tinycloud/shared": "workspace:*",
+    "@cloudery/shared": "workspace:*",
     "drizzle-orm": "^0.30.0",
     "postgres": "^3.4.4"
   },

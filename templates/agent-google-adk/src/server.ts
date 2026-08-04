@@ -11,7 +11,7 @@ app.get('/', (_req, res) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Google ADK / Gemini Agent — TinyCloud</title>
+        <title>Google ADK / Gemini Agent — Cloudery</title>
         <style>
           body { font-family: system-ui; background: #090d16; color: #f3f4f6; padding: 2rem; }
           .card { background: #121a2a; padding: 1.5rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }

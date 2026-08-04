@@ -21,7 +21,7 @@ app.get('/', (_req, res) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>LangChain OpenRouter Agent — TinyCloud</title>
+        <title>LangChain OpenRouter Agent — Cloudery</title>
         <style>
           body { font-family: system-ui, -apple-system, sans-serif; background: #090d16; color: #f8fafc; padding: 2rem; }
           .container { max-width: 680px; margin: 0 auto; }
@@ -93,7 +93,7 @@ app.post('/api/agent/chat', async (req, res) => {
         headers: {
           Authorization: `Bearer ${openRouterKey}`,
           'HTTP-Referer': 'https://cloudery.xyz',
-          'X-Title': 'TinyCloud LangChain Agent',
+          'X-Title': 'Cloudery LangChain Agent',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

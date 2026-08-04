@@ -6,13 +6,13 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: tinycloud
+      POSTGRES_DB: cloudery
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  tinycloud-stack:
+  cloudery-stack:
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,7 +22,7 @@ services:
       - "4002:4002"  # Edge Auth Gateway
       - "3000:3000"  # Web Catalog UI
     environment:
-      - DATABASE_URL=postgres://postgres:postgrespassword@postgres:5432/tinycloud
+      - DATABASE_URL=postgres://postgres:postgrespassword@postgres:5432/cloudery
       - VERCEL_TOKEN=${VERCEL_TOKEN}
       - VERCEL_TEAM_ID=${VERCEL_TEAM_ID}
       - GCP_PROJECT_ID=${GCP_PROJECT_ID}

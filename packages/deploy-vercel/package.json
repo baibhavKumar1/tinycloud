@@ -1,5 +1,5 @@
 {
-  "name": "@tinycloud/deploy-vercel",
+  "name": "@cloudery/deploy-vercel",
   "version": "0.1.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,7 +8,7 @@
     "dev": "tsc -b --watch"
   },
   "dependencies": {
-    "@tinycloud/shared": "workspace:*"
+    "@cloudery/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

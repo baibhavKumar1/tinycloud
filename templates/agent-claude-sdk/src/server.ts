@@ -11,7 +11,7 @@ app.get('/', (_req, res) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Anthropic Claude Agent — TinyCloud</title>
+        <title>Anthropic Claude Agent — Cloudery</title>
         <style>
           body { font-family: system-ui; background: #0f172a; color: #f8fafc; padding: 2rem; }
           .card { background: #1e293b; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; }
