@@ -147,3 +147,4 @@ codex mcp register cloudery --url http://localhost:4001/mcp
 ## License
 
 MIT License. Open-source and free for self-hosting and commercial use.
+
